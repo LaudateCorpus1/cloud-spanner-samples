@@ -159,8 +159,7 @@ final class SpannerDaoImpl implements SpannerDaoInterface {
           String.format("Amount transferred cannot be negative. amount: %s", amount.toString()));
     }
     try {
-      List<BigDecimal> newBalanceList = new ArrayList();
-      databaseClient
+      BigDecimal finalBalance = databaseClient
           .readWriteTransaction()
           .run(
               transaction -> {
@@ -195,10 +194,9 @@ final class SpannerDaoImpl implements SpannerDaoInterface {
                     ImmutableList.of(
                         buildUpdateAccountMutation(accountId, newBalance),
                         buildInsertTransactionHistoryMutation(accountId, amount, isCredit)));
-                newBalanceList.add(newBalance);
-                return null;
+                return newBalance;
               });
-      return newBalanceList.get(0);
+      return finalBalance;
     } catch (SpannerException e) {
       // filter for IllegalArgumentExceptions thrown in lambda function above
       Throwable cause = e.getCause();
